@@ -63,6 +63,7 @@ l'**article 323-1 du Code pénal**.
 | **Hôtes sans LLDP** | Les postes n'émettent en général pas LLDP : on sait à quel sous-réseau ils appartiennent, pas à quel port de commutateur | Lire la table MAC des commutateurs (BRIDGE-MIB `dot1dTpFdbTable`) pour trouver le port de chaque MAC |
 | **CDP non lu** | Certains équipements Cisco n'ont que CDP d'activé | Lire `CISCO-CDP-MIB` (`1.3.6.1.4.1.9.9.23`) |
 | **Classification heuristique** | Le type est déduit, il peut être faux (un Linux de bureau avec SSH sera vu comme « serveur ») | La raison est affichée ; piste : correction manuelle du type dans l'interface |
+| **Hôte éteint juste après un scan** | Si un hôte qui ne répond qu'en ARP est coupé moins de ~30 s après le dernier échange, son entrée ARP est encore REACHABLE : le noyau ne la revérifie pas et l'hôte est encore compté actif | Espacer les scans de quelques minutes (usage normal) ; avec les droits root, vider l'entrée (`ip neigh flush`) avant le scan |
 | **IPv4 uniquement** | Un /64 IPv6 ne se balaie pas (2⁶⁴ adresses) | Découverte IPv6 par le cache des voisins NDP et le multicast `ff02::1` |
 | **Linux uniquement** | Utilise `ping -W`, `ip neigh` et `/sys/class/net` | Fonctionne sous WSL ; un portage Windows demanderait d'adapter `decouverte.py` |
 

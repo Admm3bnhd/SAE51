@@ -124,9 +124,15 @@ stateDiagram-v2
 
 L'outil ne retient un hôte muet en ICMP que si son entrée arrive à
 **REACHABLE** ; il relit la table tant que l'entrée est en STALE, DELAY ou
-PROBE (fonction `confirmer_par_arp`). Ce comportement a été vérifié sur le
-labo : un hôte dont l'interface est coupée est bien déclaré « disparu »,
-un hôte qui ignore le ping est bien trouvé.
+PROBE (fonction `confirmer_par_arp`).
+
+Une entrée **STALE n'évolue que si du trafic part vers l'hôte**. Si elle
+expire juste après le ping, elle resterait STALE indéfiniment : tant
+qu'une entrée est STALE, l'outil envoie donc à l'hôte un datagramme UDP
+vide (port 9, *discard*) qui déclenche la revérification. Ce comportement
+a été vérifié sur le labo : un hôte dont l'interface est coupée est bien
+déclaré « disparu », un hôte qui ignore le ping est bien trouvé (voir
+[09-compte-rendu.md § 6.1 et 6.2](09-compte-rendu.md#6-difficultés-rencontrées-et-solutions)).
 
 ## 3.4 Modèle de données
 

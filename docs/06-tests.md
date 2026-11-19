@@ -15,11 +15,11 @@ pip install -r requirements-dev.txt
 python -m pytest -v
 ```
 
-62 tests, exécutés en moins d'une seconde :
+63 tests, exécutés en moins d'une seconde :
 
 | Fichier | Nb | Contenu |
 |---|---|---|
-| `test_decouverte.py` | 18 | Liste des hôtes d'un CIDR, analyse de `ip neigh` / `ip route` / `ip addr`, états ARP, normalisation des MAC, constructeurs OUI, MAC aléatoires, test de port TCP sur un vrai serveur local |
+| `test_decouverte.py` | 19 | Liste des hôtes d'un CIDR, analyse de `ip neigh` / `ip route` / `ip addr`, états ARP (dont sollicitation des entrées STALE), normalisation des MAC, constructeurs OUI, MAC aléatoires, test de port TCP sur un vrai serveur local |
 | `test_snmp.py` | 8 | Options v2c/v3, analyse de `snmpwalk` (valeurs multilignes, « No Such Object »), reconstruction des voisins LLDP |
 | `test_classification.py` | 16 | Un cas par règle de classification, dont le piège Windows `sysServices=76` |
 | `test_topologie.py` | 6 | Dédoublonnage des liens, liens parallèles, correspondance par MAC et par nom, voisin hors inventaire, segments |
@@ -76,7 +76,7 @@ Scénarios supplémentaires reproductibles sur ce labo :
 sudo ip netns exec srv-labo sysctl -w net.ipv4.icmp_echo_ignore_all=1
 python -m inventaire scan 10.99.0.0/24     # → trouvé par ARP
 
-# Hôte éteint (câble débranché)
+# Hôte éteint (câble débranché), puis attendre ~1 min (expiration ARP)
 sudo ip -n srv-labo link set srv-eth0 down
 python -m inventaire scan 10.99.0.0/24     # → « disparu »
 ```
@@ -158,4 +158,5 @@ pendant le développement (tests unitaires ou labo virtuel) ;
 | Un hôte éteint compté actif car encore dans le cache ARP | labo (interface coupée) | Lecture de l'état NUD, attente de REACHABLE |
 | Voisin LLDP non relié : il annonçait l'IP d'une autre interface | labo | Correspondance par MAC de châssis puis par nom |
 | Premier échange LLDP du labo avec des noms provisoires | labo | Renvoi LLDP forcé (`lldpcli update`) une fois tous les agents prêts |
+| Hôte filtrant ICMP déclaré disparu par intermittence : entrée ARP restée STALE faute de trafic | labo (captures du compte rendu) | Datagramme UDP envoyé tant que l'entrée est STALE |
 | Noms DNS longs illisibles sur le graphe | captures d'écran | Affichage du nom court (avant le premier point) |
