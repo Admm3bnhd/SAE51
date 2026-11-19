@@ -15,12 +15,12 @@ pip install -r requirements-dev.txt
 python -m pytest -v
 ```
 
-61 tests, exécutés en moins d'une seconde :
+62 tests, exécutés en moins d'une seconde :
 
 | Fichier | Nb | Contenu |
 |---|---|---|
 | `test_decouverte.py` | 18 | Liste des hôtes d'un CIDR, analyse de `ip neigh` / `ip route` / `ip addr`, états ARP, normalisation des MAC, constructeurs OUI, MAC aléatoires, test de port TCP sur un vrai serveur local |
-| `test_snmp.py` | 7 | Options v2c/v3, analyse de `snmpwalk` (valeurs multilignes, « No Such Object »), reconstruction des voisins LLDP |
+| `test_snmp.py` | 8 | Options v2c/v3, analyse de `snmpwalk` (valeurs multilignes, « No Such Object »), reconstruction des voisins LLDP |
 | `test_classification.py` | 16 | Un cas par règle de classification, dont le piège Windows `sysServices=76` |
 | `test_topologie.py` | 6 | Dédoublonnage des liens, liens parallèles, correspondance par MAC et par nom, voisin hors inventaire, segments |
 | `test_base.py` | 6 | Événements nouveau/disparu/réapparu, isolement des réseaux, conservation de l'identité, tri des IP |
@@ -146,6 +146,7 @@ pendant le développement (tests unitaires ou labo virtuel) ;
 | NF2 | Durée du scan d'un /24 (labo) | < 60 s | labo | OK (≈ 4 s ; ≈ 9 s si une vérification ARP est nécessaire) |
 | NF4 | Page topologie : requêtes vers d'autres serveurs | Aucune (vis-network embarqué) | navigateur automatisé (Playwright) | OK |
 | NF6 | `python -m inventaire web` | Écoute sur 127.0.0.1 uniquement | manuel | OK |
+| – | SNMPv3 authPriv (SHA + AES) sur snmpd : bon mot de passe, mauvais mot de passe, mots de passe dans `~/.snmp/snmp.conf` | Identité et voisins LLDP lus ; refus sans erreur ; lecture OK | labo | OK |
 | – | SNMPv3 authPriv sur IOSv | Identité et voisins lus | GNS3 | À faire |
 | – | Scan d'une salle de TP réelle (~30 postes) | Postes Windows détectés malgré le pare-feu | salle de TP | À faire |
 

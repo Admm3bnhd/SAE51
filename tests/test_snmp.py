@@ -38,8 +38,15 @@ def test_options_v3_authpriv():
     cfg = ConfigSNMP(version="3", utilisateur="admin", niveau="authPriv",
                      auth_motdepasse="motdepasse1", priv_motdepasse="motdepasse2")
     options = snmp.options_snmp(cfg)
-    assert options[:5] == ["-v3", "-u", "admin", "-l", "authPriv"]
+    assert options[:5] == ["-v3", "-l", "authPriv", "-u", "admin"]
     assert "-A" in options and "-X" in options
+
+
+def test_options_v3_mots_de_passe_dans_snmp_conf():
+    # Sans mot de passe dans config.ini, Net-SNMP utilise ~/.snmp/snmp.conf
+    cfg = ConfigSNMP(version="3", niveau="authPriv")
+    options = snmp.options_snmp(cfg)
+    assert "-A" not in options and "-X" not in options and "-u" not in options
 
 
 def test_options_v3_sans_chiffrement():

@@ -40,11 +40,20 @@ def snmp_disponible() -> bool:
 def options_snmp(cfg: ConfigSNMP) -> list[str]:
     """Arguments d'authentification et de délai communs à toutes les commandes."""
     if cfg.version == "3":
-        options = ["-v3", "-u", cfg.utilisateur, "-l", cfg.niveau]
+        # Un paramètre vide n'est pas passé : Net-SNMP prend alors la valeur
+        # par défaut de ~/.snmp/snmp.conf (defSecurityName, defAuthPassphrase…),
+        # ce qui évite d'exposer les mots de passe dans la liste des processus.
+        options = ["-v3", "-l", cfg.niveau]
+        if cfg.utilisateur:
+            options += ["-u", cfg.utilisateur]
         if cfg.niveau in ("authNoPriv", "authPriv"):
-            options += ["-a", cfg.auth_protocole, "-A", cfg.auth_motdepasse]
+            options += ["-a", cfg.auth_protocole]
+            if cfg.auth_motdepasse:
+                options += ["-A", cfg.auth_motdepasse]
         if cfg.niveau == "authPriv":
-            options += ["-x", cfg.priv_protocole, "-X", cfg.priv_motdepasse]
+            options += ["-x", cfg.priv_protocole]
+            if cfg.priv_motdepasse:
+                options += ["-X", cfg.priv_motdepasse]
     else:
         options = ["-v2c", "-c", cfg.communaute]
     return options + ["-t", str(cfg.delai), "-r", str(cfg.essais)]
