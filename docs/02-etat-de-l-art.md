@@ -41,9 +41,16 @@ couche 7 (applications). Par exemple :
   typique d'un routeur Cisco) ;
 - `6` = 2 + 4 → couches 2 et 3 → **commutateur de niveau 3** ;
 - `2` → couche 2 seule → **commutateur** ;
-- `72` = 8 + 64 → couches 4 et 7 → **hôte** (serveur, poste).
+- `72` = 8 + 64 → couches 4 et 7 → **hôte** (valeur par défaut de
+  Net-SNMP sous Linux) ;
+- `76` = 4 + 8 + 64 → couches 3, 4 et 7 → **hôte** également : c'est la
+  valeur annoncée par Windows, qui positionne le bit « couche 3 » parce
+  qu'il implémente IP.
 
-C'est un moyen standard et élégant de déterminer le rôle d'un équipement.
+C'est un moyen standard de déterminer le rôle d'un équipement, à
+condition de ne pas se fier au seul bit « couche 3 » : l'outil exige aussi
+le bit « couche 2 » pour conclure à un routeur ou un commutateur (voir
+[03-architecture.md § 3.5](03-architecture.md#35-classification-des-équipements)).
 
 **Versions de SNMP** : v1 et v2c utilisent une *communauté* qui circule
 **en clair** ; SNMPv3 ajoute authentification (SHA) et chiffrement (AES).

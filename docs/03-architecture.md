@@ -12,7 +12,7 @@ chacun **une seule responsabilité**. Il s'utilise de deux façons :
 
 ```mermaid
 flowchart LR
-    subgraph Réseau["Réseau à inventorier"]
+    subgraph RES["Réseau à inventorier"]
         R[Routeur]
         S[Commutateurs]
         H[Hôtes]
@@ -36,8 +36,8 @@ flowchart LR
     WEB --> SCAN
     SCAN --> DEC & SNMP & CLA & OUI
     SCAN --> BASE
-    DEC -- "ping, ip neigh,<br/>connexion TCP" --> Réseau
-    SNMP -- "snmpget / snmpwalk<br/>(UDP 161)" --> Réseau
+    DEC -- "ping, ip neigh,<br/>connexion TCP" --> RES
+    SNMP -- "snmpget / snmpwalk<br/>(UDP 161)" --> RES
     WEB --> BASE
     WEB --> TOPO
     NAV -- "HTTP / JSON" --> WEB
@@ -221,17 +221,17 @@ flowchart TD
     A[Équipement] --> B{"sysServices<br/>bit couche 2 ?"}
     B -- "oui + couche 3" --> R1["routeur<br/>(ou commutateur si sysDescr le dit)"]
     B -- "oui, couche 2 seule" --> C1[commutateur]
-    B -- non / pas de SNMP --> D{"mot-clé dans<br/>sysDescr ?"}
-    D -- oui --> T["imprimante, pare-feu,<br/>point d'accès, commutateur,<br/>routeur, serveur, poste"]
+    B -- "non / pas de SNMP" --> D{"mot-clé dans<br/>sysDescr ?"}
+    D -- "oui" --> T["imprimante, pare-feu,<br/>point d'accès, commutateur,<br/>routeur, serveur, poste"]
     D -- non --> E{"passerelle<br/>du réseau ?"}
-    E -- oui --> R2[routeur]
-    E -- non --> F{"ports TCP ?"}
+    E -- "oui" --> R2[routeur]
+    E -- "non" --> F{"ports TCP ?"}
     F -- "9100 / 631 / 515" --> I[imprimante]
     F -- "445 / 3389" --> P1[poste Windows]
     F -- "22 / 53 / 80 / 443 / 8080" --> S1[serveur]
-    F -- aucun --> G{"répond en SNMP ?"}
-    G -- oui --> S2[serveur]
-    G -- non --> P2["poste<br/>(ou inconnu sans MAC)"]
+    F -- "aucun" --> G{"répond en SNMP ?"}
+    G -- "oui" --> S2[serveur]
+    G -- "non" --> P2["poste<br/>(ou inconnu sans MAC)"]
 ```
 
 **Pourquoi exiger le bit couche 2 ?** Un serveur Windows annonce
