@@ -4,7 +4,10 @@ Les règles sont appliquées dans l'ordre, de la plus fiable à la moins
 fiable. Chaque décision est accompagnée d'une **raison** affichée dans
 l'interface, pour que l'administrateur puisse juger de sa pertinence.
 
-1. ``sysServices`` (SNMP) : bits des couches OSI assurées ;
+1. ``sysServices`` (SNMP) : bits des couches OSI assurées. Attention :
+   un serveur Windows annonce 76 (couches 3, 4 et 7) car il implémente IP.
+   Le bit « couche 3 » seul ne prouve donc pas qu'on a affaire à un
+   routeur : on exige aussi le bit « couche 2 » (Cisco : 78 ou 6) ;
 2. mots-clés dans ``sysDescr`` (SNMP) ;
 3. passerelle par défaut du réseau ⇒ routeur ;
 4. ports TCP ouverts ;
@@ -46,14 +49,15 @@ def classifier(eq: dict, passerelle: str | None = None) -> tuple[str, str]:
     description = eq.get("description") or ""
     ports = set(eq.get("ports") or [])
 
-    # 1. sysServices : un équipement de couche 3 qui n'est pas un simple hôte
-    if services:
+    # 1. sysServices : seul le bit « couche 2 » distingue un équipement
+    #    d'interconnexion d'un simple hôte IP
+    if services and services & COUCHE_2:
         if services & COUCHE_3:
             if re.search(r"switch|catalyst|commutateur", description, re.I):
-                return "commutateur", f"sysServices={services} (couche 3) et sysDescr de commutateur"
-            return "routeur", f"sysServices={services} : routage (couche 3)"
-        if services & COUCHE_2:
-            return "commutateur", f"sysServices={services} : commutation (couche 2)"
+                return "commutateur", (f"sysServices={services} (couches 2 et 3) "
+                                       "et sysDescr de commutateur")
+            return "routeur", f"sysServices={services} : couches 2 et 3 (routage)"
+        return "commutateur", f"sysServices={services} : couche 2 seule (commutation)"
 
     # 2. Mots-clés dans la description SNMP
     for motif, type_ in MOTS_CLES:
