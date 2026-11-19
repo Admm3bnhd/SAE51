@@ -100,14 +100,32 @@ ETATS_CONFIRMES = {"REACHABLE", "PERMANENT", "NOARP"}
 ETATS_EN_COURS = {"DELAY", "PROBE", "STALE"}
 
 
+def solliciter(ip: str) -> None:
+    """Envoie un datagramme UDP vide (port 9, « discard ») à l'hôte.
+
+    Ce paquet sans importance oblige le noyau à utiliser l'entrée ARP de
+    l'hôte : une entrée STALE passe alors en DELAY puis est revérifiée.
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.sendto(b"", (ip, 9))
+    except OSError:
+        pass
+
+
 def confirmer_par_arp(candidats: set[str], attente_max: float = 10.0) -> dict[str, str]:
     """Parmi des hôtes muets en ICMP mais présents dans le cache ARP, garde
     ceux qui ont réellement répondu à ARP pendant le scan.
 
-    Une entrée du cache peut être **périmée** (hôte éteint depuis). Après le
-    ping, le noyau la revérifie : DELAY → PROBE (requêtes ARP unicast) →
-    REACHABLE si l'hôte répond, sinon FAILED au bout d'environ 8 s. On relit
-    donc la table jusqu'à ce que chaque candidat soit tranché.
+    Une entrée du cache peut être **périmée** (hôte éteint depuis). Quand du
+    trafic part vers l'hôte, le noyau la revérifie : DELAY → PROBE (requêtes
+    ARP unicast) → REACHABLE si l'hôte répond, sinon FAILED au bout
+    d'environ 8 s. On relit donc la table jusqu'à ce que chaque candidat
+    soit tranché.
+
+    Une entrée STALE n'évolue **que si du trafic est émis** : si elle est
+    devenue STALE juste après le ping, elle le resterait indéfiniment. On
+    sollicite donc l'hôte tant que son entrée est STALE.
     """
     confirmes: dict[str, str] = {}
     fin = time.monotonic() + attente_max
@@ -120,6 +138,8 @@ def confirmer_par_arp(candidats: set[str], attente_max: float = 10.0) -> dict[st
                 confirmes[ip] = mac
             elif etat in ETATS_EN_COURS:
                 en_cours = True
+                if etat == "STALE":
+                    solliciter(ip)
         if not en_cours or time.monotonic() >= fin:
             return confirmes
         time.sleep(1)

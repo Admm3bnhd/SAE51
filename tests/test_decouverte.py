@@ -50,6 +50,22 @@ def test_confirmer_par_arp_ecarte_les_entrees_perimees(monkeypatch):
     assert confirmes == {"192.168.1.20": "aa:aa:aa:aa:aa:20"}
 
 
+def test_confirmer_par_arp_sollicite_les_entrees_stale(monkeypatch):
+    # Une entrée STALE ne bouge que si du trafic est émis : l'outil doit
+    # solliciter l'hôte, après quoi l'entrée devient REACHABLE.
+    lectures = iter([
+        {"192.168.1.20": ("aa:aa:aa:aa:aa:20", "STALE")},
+        {"192.168.1.20": ("aa:aa:aa:aa:aa:20", "DELAY")},
+        {"192.168.1.20": ("aa:aa:aa:aa:aa:20", "REACHABLE")},
+    ])
+    sollicites = []
+    monkeypatch.setattr(decouverte, "lire_table_arp", lambda: next(lectures))
+    monkeypatch.setattr(decouverte, "solliciter", sollicites.append)
+    monkeypatch.setattr(decouverte.time, "sleep", lambda s: None)
+    assert decouverte.confirmer_par_arp({"192.168.1.20"}) == {"192.168.1.20": "aa:aa:aa:aa:aa:20"}
+    assert sollicites == ["192.168.1.20"]
+
+
 def test_analyser_route_defaut():
     texte = "default via 192.168.1.254 dev eth0 proto dhcp metric 100\n"
     assert decouverte.analyser_route_defaut(texte) == "192.168.1.254"

@@ -102,7 +102,8 @@ def scanner(reseau: str, config: Config, base: Base,
         base.fin_scan(scan_id, len(equipements))
         journal(f"Terminé en {bilan['duree']} s : {bilan['actifs']} actif(s), "
                 f"{bilan['snmp']} en SNMP, {bilan['liens_lldp']} lien(s) LLDP, "
-                f"{bilan['nouveaux']} nouveau(x), {bilan['disparus']} disparu(s)")
+                f"{bilan['nouveaux']} nouveau(x), {bilan['disparus']} disparu(s), "
+                f"{bilan['reapparus']} réapparu(s)")
         return bilan
 
     except Exception as erreur:
