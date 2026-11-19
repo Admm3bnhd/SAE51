@@ -1,0 +1,15 @@
+digraph lldpsnmp {
+  graph [rankdir=LR, fontname="DejaVu Sans", nodesep=0.4, ranksep=0.55, pad=0.3];
+  node  [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, fillcolor="#f8f9fa", color="#adb5bd"];
+  edge  [fontname="DejaVu Sans", fontsize=9, fontcolor="#495057", color="#495057"];
+  voisin [label="Équipement voisin\n(lldpd ou IOS « lldp run »)", fillcolor="#ebfbee", color="#2f9e44"];
+  lldpd  [label="lldpd\nvoisins reçus", fillcolor="#e7f5ff", color="#1971c2"];
+  snmpd  [label="snmpd\nagent maître", fillcolor="#e7f5ff", color="#1971c2"];
+  mib    [label="LLDP-MIB\n1.0.8802.1.1.2", shape=folder, fillcolor="#fff9db", color="#e67700"];
+  outil  [label="Outil d'inventaire\nsnmpwalk", fillcolor="#fff4e6", color="#e67700"];
+  voisin -> lldpd [label="trame LLDP\n(EtherType 0x88CC,\nmulticast 01:80:c2:00:00:0e)"];
+  lldpd -> snmpd [label="AgentX\n(sous-agent)"];
+  snmpd -> mib [arrowhead=none, style=dotted];
+  outil -> snmpd [label="SNMP GET/WALK\nUDP 161", dir=both];
+  subgraph cluster_eq { label="Équipement interrogé"; style="rounded,dashed"; color="#1971c2"; fontname="DejaVu Sans"; fontsize=10; lldpd; snmpd; mib; }
+}

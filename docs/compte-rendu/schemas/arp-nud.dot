@@ -1,0 +1,17 @@
+digraph nud {
+  graph [rankdir=LR, fontname="DejaVu Sans", nodesep=0.45, ranksep=0.6, pad=0.3];
+  node  [shape=box, style="rounded,filled", fontname="DejaVu Sans Mono", fontsize=10.5, fillcolor="#f8f9fa", color="#868e96", width=1.3];
+  edge  [fontname="DejaVu Sans", fontsize=9, fontcolor="#495057", color="#495057"];
+  INCOMPLETE; DELAY; PROBE;
+  REACHABLE [fillcolor="#ebfbee", color="#2f9e44", penwidth=1.6];
+  STALE [fillcolor="#fff9db", color="#e67700", penwidth=1.6];
+  FAILED [fillcolor="#fff5f5", color="#c92a2a", penwidth=1.6];
+  INCOMPLETE -> REACHABLE [label="réponse ARP"];
+  INCOMPLETE -> FAILED [label="pas de réponse\n(3 essais)"];
+  REACHABLE -> STALE [label="~30 s sans\nconfirmation"];
+  STALE -> DELAY [label="trafic émis vers l'hôte\n(ping… ou datagramme UDP\nenvoyé par l'outil)", color="#1971c2", fontcolor="#1971c2", penwidth=1.6];
+  STALE -> STALE [label="aucun trafic :\nreste STALE\n(cause du bug)", color="#c92a2a", fontcolor="#c92a2a", style=dashed];
+  DELAY -> PROBE [label="5 s"];
+  PROBE -> REACHABLE [label="réponse ARP\nunicast"];
+  PROBE -> FAILED [label="pas de réponse"];
+}

@@ -1,0 +1,22 @@
+graph labo {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=11, nodesep=0.5, ranksep=0.9, pad=0.3, compound=true];
+  node  [fontname="DejaVu Sans", fontsize=10];
+  edge  [fontname="DejaVu Sans", fontsize=9, fontcolor="#495057", color="#495057", penwidth=1.6];
+
+  subgraph cluster_hote { label="Machine hôte (namespace par défaut)"; style="rounded,filled"; fillcolor="#f1f3f5"; color="#868e96";
+    outil [label="Outil d'inventaire\npython -m inventaire", shape=box, style="rounded,filled", fillcolor="#fff4e6", color="#e67700"];
+    h [label="poste-admin\nveth-hote 10.99.0.1\nsnmpd + lldpd (AgentX)", shape=box, style="rounded,filled", fillcolor="#ffffff", color="#2f9e44"];
+  }
+  subgraph cluster_sw { label="namespace sw-labo"; style="rounded,filled"; fillcolor="#e7f5ff"; color="#1971c2";
+    br [label="pont br0  10.99.0.2\n(« commutateur », sysServices=2)\nsnmpd + lldpd (AgentX)", shape=box, style="rounded,filled", fillcolor="#ffffff", color="#1971c2"];
+    p1 [label="sw-p1", shape=circle, width=0.6, fixedsize=true, style=filled, fillcolor="#d0ebff", color="#1971c2"];
+    p2 [label="sw-p2", shape=circle, width=0.6, fixedsize=true, style=filled, fillcolor="#d0ebff", color="#1971c2"];
+    p1 -- br [style=dotted, penwidth=1]; p2 -- br [style=dotted, penwidth=1];
+  }
+  subgraph cluster_srv { label="namespace srv-labo"; style="rounded,filled"; fillcolor="#ebfbee"; color="#2f9e44";
+    s [label="srv-labo\nsrv-eth0 10.99.0.3\nsnmpd + lldpd (AgentX)", shape=box, style="rounded,filled", fillcolor="#ffffff", color="#2f9e44"];
+  }
+  outil -- h [style=dashed, penwidth=1, label="scan"];
+  h -- p1 [label="paire veth"];
+  p2 -- s [label="paire veth"];
+}

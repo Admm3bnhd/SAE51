@@ -1,0 +1,29 @@
+digraph architecture {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=12, nodesep=0.35, ranksep=0.7, bgcolor="white", pad=0.3];
+  node  [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#adb5bd", fillcolor="#f8f9fa", margin="0.15,0.08"];
+  edge  [fontname="DejaVu Sans", fontsize=9, color="#6c757d", fontcolor="#495057"];
+
+  subgraph cluster_entrees { label="Points d'entrée"; style="rounded,dashed"; color="#adb5bd"; fontcolor="#495057";
+    cli [label="__main__.py\nligne de commande\n(scan · web · demo)", fillcolor="#e7f5ff", color="#1971c2"];
+    web [label="web/app.py\nFlask : pages, API JSON,\nexports, scan en tâche de fond", fillcolor="#e7f5ff", color="#1971c2"];
+  }
+  scan [label="scanner.py\norchestration d'un scan", fillcolor="#fff4e6", color="#e67700", penwidth=1.6];
+  subgraph cluster_collecte { label="Collecte (lecture seule)"; style="rounded,dashed"; color="#adb5bd"; fontcolor="#495057";
+    dec  [label="decouverte.py\nICMP · ARP · DNS · TCP"];
+    snmp [label="snmp.py\nSNMP v2c/v3 · LLDP-MIB"];
+    oui  [label="oui.py\nconstructeur (OUI)"];
+  }
+  cla  [label="classification.py\ntype + raison"];
+  base [label="base.py\nSQLite + détection\ndes changements", shape=cylinder, fillcolor="#ebfbee", color="#2f9e44"];
+  topo [label="topologie.py\ngraphe nœuds / liens"];
+  nav  [label="Navigateur\nvis-network", shape=component, fillcolor="#f3f0ff", color="#6741d9"];
+  res  [label="Réseau\nrouteurs · commutateurs · hôtes", shape=box3d, fillcolor="#fff5f5", color="#c92a2a"];
+
+  cli -> scan; web -> scan [label="POST /scan"];
+  scan -> dec; scan -> snmp; scan -> oui; scan -> cla;
+  scan -> base [label="enregistrement"];
+  dec -> res [label="ping, ip neigh,\nconnexion TCP", style=dashed];
+  snmp -> res [label="snmpget / snmpwalk\nUDP 161", style=dashed];
+  web -> base [label="lecture"]; web -> topo;
+  nav -> web [label="HTTP / JSON", dir=both];
+}

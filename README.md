@@ -90,6 +90,7 @@ flowchart LR
 | [6. Tests](docs/06-tests.md) | Tests unitaires, labo virtuel, maquette GNS3, plan de recette |
 | [7. Sécurité et limites](docs/07-securite-et-limites.md) | Cadre légal, sécurité, limites, améliorations |
 | [8. Gestion de projet](docs/08-gestion-de-projet.md) | Lots, planning, répartition, risques |
+| [**9. Compte rendu**](docs/09-compte-rendu.md) ([PDF](docs/compte-rendu.pdf)) | Solution, structure, labo de test, résultats, difficultés, avec captures réelles |
 
 ## Arborescence
 
@@ -107,7 +108,7 @@ inventaire-reseau/
 │   ├── topologie.py         Construction du graphe
 │   ├── demo.py              Réseau de démonstration
 │   └── web/                 Interface Flask (gabarits, CSS, JS)
-├── tests/                   Tests pytest (62 tests)
+├── tests/                   Tests pytest (63 tests)
 ├── scripts/
 │   ├── labo_veth.sh         Labo virtuel de test
 │   └── telecharger_oui.sh   Base IEEE des constructeurs

@@ -1,0 +1,17 @@
+digraph algo {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.3, ranksep=0.32, pad=0.3];
+  node  [fontname="DejaVu Sans", fontsize=10, shape=box, style="rounded,filled", fillcolor="#f8f9fa", color="#adb5bd"];
+  edge  [fontname="DejaVu Sans", fontsize=9, color="#495057", fontcolor="#495057"];
+  v  [label="Voisin LLDP déclaré par A\n(nom, port, IP admin, châssis)", fillcolor="#e7f5ff", color="#1971c2"];
+  q1 [label="IP d'administration\ndans l'inventaire ?", shape=diamond, style=filled, fillcolor="#fff9db", color="#e67700"];
+  q2 [label="MAC de châssis\ndans l'inventaire ?", shape=diamond, style=filled, fillcolor="#fff9db", color="#e67700"];
+  q3 [label="nom court\ndans l'inventaire ?", shape=diamond, style=filled, fillcolor="#fff9db", color="#e67700"];
+  ok [label="Lien A — B\n(trait plein, ports affichés)", fillcolor="#ebfbee", color="#2f9e44"];
+  ext [label="Nœud « hors inventaire »\n(contour pointillé)", fillcolor="#f1f3f5", color="#868e96"];
+  dd [label="Dédoublonnage par paire {A, B} :\non garde les déclarations de l'équipement\nqui en fait le plus (liens parallèles conservés)", fillcolor="#f3f0ff", color="#6741d9"];
+  orph [label="Équipements sans aucun lien LLDP\n→ reliés en pointillés au nœud « segment »\n(sous-réseau), lui-même relié à la passerelle", fillcolor="#f3f0ff", color="#6741d9"];
+  v -> q1; q1 -> ok [label="oui"]; q1 -> q2 [label="non"];
+  q2 -> ok [label="oui"]; q2 -> q3 [label="non"];
+  q3 -> ok [label="oui"]; q3 -> ext [label="non"];
+  ok -> dd; ext -> dd; dd -> orph;
+}

@@ -1,0 +1,16 @@
+digraph pipeline {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.45, ranksep=0.5, pad=0.3];
+  node  [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10.5, fillcolor="#f8f9fa", color="#adb5bd", width=1.6, margin="0.12,0.08"];
+  edge  [color="#495057", arrowsize=0.7];
+  e1 [label=<<b>1. Ping</b><br/><font point-size="9">ICMP Echo, 64 en parallèle<br/>couche 3</font>>, fillcolor="#e7f5ff", color="#1971c2"];
+  e2 [label=<<b>2. Cache ARP</b><br/><font point-size="9">ip neigh : MAC +<br/>hôtes muets en ICMP<br/>couche 2</font>>, fillcolor="#e7f5ff", color="#1971c2"];
+  e3 [label=<<b>3. Par hôte</b><br/><font point-size="9">OUI · DNS PTR<br/>ports TCP<br/>couches 4/7</font>>, fillcolor="#fff4e6", color="#e67700"];
+  e4 [label=<<b>4. SNMP</b><br/><font point-size="9">sysDescr, sysName,<br/>sysServices<br/>UDP 161</font>>, fillcolor="#fff4e6", color="#e67700"];
+  e5 [label=<<b>5. LLDP-MIB</b><br/><font point-size="9">voisins directs,<br/>ports, IP admin</font>>, fillcolor="#fff4e6", color="#e67700"];
+  e6 [label=<<b>6. Classification</b><br/><font point-size="9">type + raison</font>>];
+  e7 [label=<<b>7. SQLite</b><br/><font point-size="9">nouveau / disparu /<br/>réapparu</font>>, shape=cylinder, fillcolor="#ebfbee", color="#2f9e44"];
+  e8 [label=<<b>8. Interface web</b><br/><font point-size="9">inventaire,<br/>topologie</font>>, fillcolor="#f3f0ff", color="#6741d9"];
+  { rank=same; e1 -> e2 -> e3 -> e4; }
+  { rank=same; e8 -> e7 -> e6 -> e5 [dir=back]; }
+  e4 -> e5;
+}
