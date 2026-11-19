@@ -30,8 +30,8 @@ dans une interface web.
 
 ```bash
 sudo apt install -y python3-venv iputils-ping iproute2 snmp
-git clone https://github.com/<compte>/inventaire-reseau.git
-cd inventaire-reseau
+git clone https://github.com/Admm3bnhd/SAE51.git
+cd SAE51
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 

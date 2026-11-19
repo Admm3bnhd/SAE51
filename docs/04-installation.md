@@ -21,8 +21,8 @@ sudo apt update
 sudo apt install -y git python3 python3-venv iputils-ping iproute2 snmp
 
 # 2. Récupération du projet
-git clone https://github.com/<compte>/inventaire-reseau.git
-cd inventaire-reseau
+git clone https://github.com/Admm3bnhd/SAE51.git
+cd SAE51
 
 # 3. Environnement virtuel Python et dépendances
 python3 -m venv .venv
