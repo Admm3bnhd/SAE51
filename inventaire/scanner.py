@@ -58,15 +58,23 @@ def scanner(reseau: str, config: Config, base: Base,
         journal(f"  {len(actifs)} hôte(s) ont répondu au ping")
 
         # 2. ARP (le ping a forcé la résolution ARP de chaque adresse)
-        macs = {ip: mac for ip, mac in decouverte.lire_table_arp().items()
-                if ipaddress.ip_address(ip) in net}
-        macs.update({ip: mac for ip, mac in decouverte.interfaces_locales().items()
-                     if ipaddress.ip_address(ip) in net})
-        silencieux = set(macs) - actifs
-        if silencieux:
-            journal(f"  {len(silencieux)} hôte(s) supplémentaire(s) trouvé(s) par ARP "
-                    "(ICMP filtré)")
-        actifs |= set(macs)
+        table_arp = {ip: entree for ip, entree in decouverte.lire_table_arp().items()
+                     if ipaddress.ip_address(ip) in net}
+        # La machine qui scanne n'est pas dans son propre cache ARP
+        locales = {ip: mac for ip, mac in decouverte.interfaces_locales().items()
+                   if ipaddress.ip_address(ip) in net}
+        macs = {ip: mac for ip, (mac, _etat) in table_arp.items()} | locales
+        actifs |= set(locales)
+
+        # Hôtes présents dans le cache ARP mais muets en ICMP : à confirmer
+        candidats = set(table_arp) - actifs
+        if candidats:
+            journal(f"  Vérification ARP de {len(candidats)} hôte(s) muet(s) en ICMP...")
+            silencieux = decouverte.confirmer_par_arp(candidats)
+            if silencieux:
+                journal(f"  {len(silencieux)} hôte(s) supplémentaire(s) trouvé(s) par ARP "
+                        "(ICMP filtré)")
+            actifs |= set(silencieux)
 
         passerelle = decouverte.passerelle_par_defaut()
         if passerelle and ipaddress.ip_address(passerelle) not in net:

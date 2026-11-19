@@ -5,7 +5,8 @@ Techniques utilisées :
 1. **Ping ICMP** en parallèle sur toutes les adresses du sous-réseau ;
 2. **lecture du cache ARP** du noyau (``ip neigh``) : un hôte qui filtre
    ICMP répond quand même aux requêtes ARP émises pendant le ping, on le
-   retrouve donc dans la table avec son adresse MAC ;
+   retrouve donc dans la table avec son adresse MAC (on vérifie l'état de
+   l'entrée pour écarter les entrées périmées d'hôtes éteints) ;
 3. **DNS inverse** pour obtenir un nom ;
 4. **connexion TCP** sur quelques ports connus pour repérer les services.
 
@@ -17,6 +18,7 @@ import ipaddress
 import re
 import socket
 import subprocess
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -69,28 +71,58 @@ def normaliser_mac(mac: str) -> str:
     return ":".join(chiffres[i:i + 2] for i in range(0, 12, 2))
 
 
-def analyser_ip_neigh(texte: str) -> dict[str, str]:
-    """Extrait les couples IP → MAC de la sortie de ``ip neigh show``.
+def analyser_ip_neigh(texte: str) -> dict[str, tuple[str, str]]:
+    """Extrait IP → (MAC, état) de la sortie de ``ip neigh show``.
 
     Exemple de ligne : ``192.168.1.1 dev eth0 lladdr 00:11:22:33:44:55 REACHABLE``.
     Les entrées sans ``lladdr`` (INCOMPLETE, FAILED) sont ignorées.
     """
     table = {}
     for ligne in texte.splitlines():
-        m = re.match(r"^(\d+\.\d+\.\d+\.\d+)\s.*\blladdr\s+([0-9a-fA-F:]{17})", ligne)
+        m = re.match(r"^(\d+\.\d+\.\d+\.\d+)\s.*\blladdr\s+([0-9a-fA-F:]{17})\s*(\w*)", ligne)
         if m and "FAILED" not in ligne:
-            table[m.group(1)] = normaliser_mac(m.group(2))
+            table[m.group(1)] = (normaliser_mac(m.group(2)), m.group(3) or "INCONNU")
     return table
 
 
-def lire_table_arp() -> dict[str, str]:
-    """Cache ARP du noyau Linux."""
+def lire_table_arp() -> dict[str, tuple[str, str]]:
+    """Cache ARP du noyau Linux : IP → (MAC, état NUD)."""
     try:
         sortie = subprocess.run(["ip", "-4", "neigh", "show"], capture_output=True,
                                 text=True, timeout=5).stdout
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return {}
     return analyser_ip_neigh(sortie)
+
+
+# États du cache ARP (machine d'états NUD du noyau Linux)
+ETATS_CONFIRMES = {"REACHABLE", "PERMANENT", "NOARP"}
+ETATS_EN_COURS = {"DELAY", "PROBE", "STALE"}
+
+
+def confirmer_par_arp(candidats: set[str], attente_max: float = 10.0) -> dict[str, str]:
+    """Parmi des hôtes muets en ICMP mais présents dans le cache ARP, garde
+    ceux qui ont réellement répondu à ARP pendant le scan.
+
+    Une entrée du cache peut être **périmée** (hôte éteint depuis). Après le
+    ping, le noyau la revérifie : DELAY → PROBE (requêtes ARP unicast) →
+    REACHABLE si l'hôte répond, sinon FAILED au bout d'environ 8 s. On relit
+    donc la table jusqu'à ce que chaque candidat soit tranché.
+    """
+    confirmes: dict[str, str] = {}
+    fin = time.monotonic() + attente_max
+    while True:
+        table = lire_table_arp()
+        en_cours = False
+        for ip in candidats - confirmes.keys():
+            mac, etat = table.get(ip, ("", "FAILED"))
+            if etat in ETATS_CONFIRMES:
+                confirmes[ip] = mac
+            elif etat in ETATS_EN_COURS:
+                en_cours = True
+        if not en_cours or time.monotonic() >= fin:
+            return confirmes
+        time.sleep(1)
 
 
 def analyser_route_defaut(texte: str) -> str | None:

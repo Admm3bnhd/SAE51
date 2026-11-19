@@ -31,9 +31,23 @@ def test_lister_hotes_refuse_les_reseaux_invalides(reseau):
 def test_analyser_ip_neigh_ignore_les_entrees_incompletes():
     table = decouverte.analyser_ip_neigh(SORTIE_IP_NEIGH)
     assert table == {
-        "192.168.1.1": "00:11:22:33:44:55",
-        "192.168.1.20": "aa:bb:cc:dd:ee:ff",
+        "192.168.1.1": ("00:11:22:33:44:55", "REACHABLE"),
+        "192.168.1.20": ("aa:bb:cc:dd:ee:ff", "STALE"),
     }
+
+
+def test_confirmer_par_arp_ecarte_les_entrees_perimees(monkeypatch):
+    # 1re lecture : les deux entrées sont en cours de vérification ;
+    # 2e lecture : .20 a répondu (REACHABLE), .30 a échoué (FAILED → absente)
+    lectures = iter([
+        {"192.168.1.20": ("aa:aa:aa:aa:aa:20", "DELAY"),
+         "192.168.1.30": ("aa:aa:aa:aa:aa:30", "PROBE")},
+        {"192.168.1.20": ("aa:aa:aa:aa:aa:20", "REACHABLE")},
+    ])
+    monkeypatch.setattr(decouverte, "lire_table_arp", lambda: next(lectures))
+    monkeypatch.setattr(decouverte.time, "sleep", lambda s: None)
+    confirmes = decouverte.confirmer_par_arp({"192.168.1.20", "192.168.1.30"})
+    assert confirmes == {"192.168.1.20": "aa:aa:aa:aa:aa:20"}
 
 
 def test_analyser_route_defaut():
