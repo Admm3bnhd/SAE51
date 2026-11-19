@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block titre %}Tableau de bord{% endblock %}
+
+{% block contenu %}
+<h1>Tableau de bord</h1>
+
+<section class="cartes">
+  <div class="carte chiffre"><span>{{ stats.total }}</span>équipements inventoriés</div>
+  <div class="carte chiffre"><span class="vert">{{ stats.en_ligne }}</span>en ligne</div>
+  <div class="carte chiffre"><span class="gris">{{ stats.hors_ligne }}</span>hors ligne</div>
+  <div class="carte chiffre"><span>{{ reseaux|length }}</span>réseau(x) scanné(s)</div>
+</section>
+
+<div class="grille">
+  <section class="carte">
+    <h2>Lancer une découverte</h2>
+    <form method="post" action="{{ url_for('lancer_scan') }}" class="formulaire-scan">
+      <label for="reseau">Réseau (notation CIDR)</label>
+      <div class="ligne">
+        <input id="reseau" name="reseau" placeholder="192.168.1.0/24" required
+               value="{{ reseaux[0].reseau if reseaux else '' }}"
+               {% if etat.en_cours %}disabled{% endif %}>
+        <button type="submit" {% if etat.en_cours %}disabled{% endif %}>Scanner</button>
+      </div>
+      <p class="aide">Ne scannez qu'un réseau dont vous avez l'autorisation.</p>
+    </form>
+    <div id="suivi-scan" {% if not etat.en_cours and not etat.journal %}hidden{% endif %}>
+      <h3>Scan {{ etat.reseau or '' }} <span id="statut-scan">{% if etat.en_cours %}en cours…{% endif %}</span></h3>
+      <pre id="journal-scan">{{ etat.journal|join('\n') }}{% if etat.erreur %}
+Erreur : {{ etat.erreur }}{% endif %}</pre>
+    </div>
+  </section>
+
+  <section class="carte">
+    <h2>Répartition par type</h2>
+    {% if stats.par_type %}
+      <ul class="repartition">
+        {% for type, nb in stats.par_type.items() %}
+          <li>{{ m.badge_type(type) }}
+            <span class="barre"><span style="width: {{ (100 * nb / stats.total)|round }}%; background: {{ couleurs.get(type, '#868e96') }}"></span></span>
+            <strong>{{ nb }}</strong></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="vide">Aucun équipement : lancez un premier scan ou <code>python -m inventaire demo</code>.</p>
+    {% endif %}
+  </section>
+</div>
+
+<div class="grille">
+  <section class="carte">
+    <h2>Derniers changements</h2>
+    {% if evenements %}
+      <table>
+        <thead><tr><th>Date</th><th>Événement</th><th>Équipement</th></tr></thead>
+        <tbody>
+        {% for e in evenements %}
+          <tr><td class="date">{{ e.date }}</td><td>{{ m.badge_evenement(e.type) }}</td>
+              <td><a href="{{ url_for('equipement', ip=e.ip) }}">{{ e.message.split(' : ', 1)[-1] }}</a></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}<p class="vide">Aucun changement enregistré.</p>{% endif %}
+  </section>
+
+  <section class="carte">
+    <h2>Derniers scans</h2>
+    {% if scans %}
+      <table>
+        <thead><tr><th>Début</th><th>Réseau</th><th>Actifs</th><th>Statut</th></tr></thead>
+        <tbody>
+        {% for s in scans %}
+          <tr><td class="date">{{ s.debut }}</td><td>{{ s.reseau }}</td>
+              <td>{{ s.nb_actifs if s.nb_actifs is not none else '–' }}</td>
+              <td title="{{ s.message or '' }}">{{ s.statut }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}<p class="vide">Aucun scan effectué.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if etat.en_cours %}
+<script>
+  // Suivi du scan en cours : interrogation de l'API toutes les 2 secondes
+  const journal = document.getElementById("journal-scan");
+  const minuterie = setInterval(async () => {
+    const etat = await (await fetch("{{ url_for('api_scan') }}")).json();
+    journal.textContent = etat.journal.join("\n") + (etat.erreur ? "\nErreur : " + etat.erreur : "");
+    if (!etat.en_cours) {
+      clearInterval(minuterie);
+      window.location.reload();
+    }
+  }, 2000);
+</script>
+{% endif %}
+{% endblock %}

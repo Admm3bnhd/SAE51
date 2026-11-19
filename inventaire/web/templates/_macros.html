@@ -1,0 +1,14 @@
+{# Petits éléments réutilisés dans plusieurs pages #}
+
+{% macro badge_type(type) -%}
+  <span class="badge" style="--couleur: {{ couleurs.get(type or 'inconnu', '#868e96') }}">{{ type or 'inconnu' }}</span>
+{%- endmacro %}
+
+{% macro etat(en_ligne) -%}
+  {% if en_ligne %}<span class="etat en-ligne" title="En ligne">●</span>
+  {% else %}<span class="etat hors-ligne" title="Hors ligne">○</span>{% endif %}
+{%- endmacro %}
+
+{% macro badge_evenement(type) -%}
+  <span class="evt evt-{{ type }}">{{ {'nouveau': 'Nouveau', 'disparu': 'Disparu', 'reapparu': 'Réapparu'}.get(type, type) }}</span>
+{%- endmacro %}

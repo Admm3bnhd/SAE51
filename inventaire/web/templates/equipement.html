@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block titre %}{{ nom_affiche(eq) }}{% endblock %}
+
+{% block contenu %}
+<p class="fil"><a href="{{ url_for('inventaire') }}">Inventaire</a> › {{ eq.ip }}</p>
+<h1>{{ m.etat(eq.en_ligne) }} {{ nom_affiche(eq) }} {{ m.badge_type(eq.type) }}</h1>
+
+<div class="grille">
+  <section class="carte">
+    <h2>Identité</h2>
+    <dl class="fiche">
+      <dt>Adresse IP</dt><dd class="mono">{{ eq.ip }}</dd>
+      <dt>Réseau</dt><dd class="mono">{{ eq.reseau or '–' }}</dd>
+      <dt>Adresse MAC</dt><dd class="mono">{{ eq.mac or '–' }}</dd>
+      <dt>Constructeur</dt><dd>{{ eq.constructeur or '–' }}</dd>
+      <dt>Nom DNS</dt><dd>{{ eq.nom_dns or '–' }}</dd>
+      <dt>Nom SNMP</dt><dd>{{ eq.nom_snmp or '–' }}</dd>
+      <dt>Type</dt><dd>{{ eq.type }} <span class="aide">— {{ eq.raison_type }}</span></dd>
+      <dt>Ports TCP ouverts</dt><dd class="mono">{{ (eq.ports or '–')|replace(',', ', ') }}</dd>
+      <dt>État</dt><dd>{{ 'En ligne' if eq.en_ligne else 'Hors ligne' }}</dd>
+      <dt>Première vue</dt><dd class="date">{{ eq.premiere_vue }}</dd>
+      <dt>Dernière vue</dt><dd class="date">{{ eq.derniere_vue }}</dd>
+    </dl>
+  </section>
+
+  <section class="carte">
+    <h2>Description SNMP</h2>
+    {% if eq.description %}<pre>{{ eq.description }}</pre>
+    {% else %}<p class="vide">L'équipement n'a pas répondu en SNMP.</p>{% endif %}
+  </section>
+</div>
+
+<section class="carte">
+  <h2>Voisins LLDP</h2>
+  {% if voisins %}
+    <table>
+      <thead><tr><th>Port local</th><th>Voisin</th><th>Port du voisin</th><th>IP d'administration</th><th>Châssis</th></tr></thead>
+      <tbody>
+      {% for v in voisins %}
+        <tr><td class="mono">{{ v.port_local }}</td><td>{{ v.nom_distant }}</td>
+            <td class="mono">{{ v.port_distant }}</td><td class="mono">{{ v.ip_distante }}</td>
+            <td class="mono">{{ v.chassis_distant }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}<p class="vide">Aucun voisin LLDP déclaré par cet équipement.</p>{% endif %}
+</section>
+
+<section class="carte">
+  <h2>Historique</h2>
+  {% if evenements %}
+    <table>
+      <tbody>
+      {% for e in evenements %}
+        <tr><td class="date">{{ e.date }}</td><td>{{ m.badge_evenement(e.type) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}<p class="vide">Aucun événement.</p>{% endif %}
+</section>
+{% endblock %}

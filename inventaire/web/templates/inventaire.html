@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block titre %}Inventaire{% endblock %}
+
+{% block contenu %}
+<div class="titre-ligne">
+  <h1>Inventaire <small>({{ equipements|length }})</small></h1>
+  <div class="exports">
+    <a class="bouton secondaire" href="{{ url_for('export_csv') }}">Exporter CSV</a>
+    <a class="bouton secondaire" href="{{ url_for('export_json') }}">Exporter JSON</a>
+  </div>
+</div>
+
+<div class="filtres">
+  <input id="recherche" type="search" placeholder="Filtrer (IP, nom, MAC, constructeur…)">
+  <select id="filtre-type">
+    <option value="">Tous les types</option>
+    {% for type in couleurs if type != 'segment' %}<option>{{ type }}</option>{% endfor %}
+  </select>
+  <label><input id="filtre-en-ligne" type="checkbox"> En ligne uniquement</label>
+</div>
+
+<div class="defilement">
+<table id="tableau-inventaire">
+  <thead>
+    <tr><th></th><th>Adresse IP</th><th>Nom</th><th>Type</th><th>Adresse MAC</th>
+        <th>Constructeur</th><th>Ports TCP</th><th>SNMP</th><th>Dernière vue</th></tr>
+  </thead>
+  <tbody>
+  {% for e in equipements %}
+    <tr data-type="{{ e.type }}" data-en-ligne="{{ e.en_ligne }}">
+      <td>{{ m.etat(e.en_ligne) }}</td>
+      <td><a href="{{ url_for('equipement', ip=e.ip) }}">{{ e.ip }}</a></td>
+      <td>{{ e.nom_snmp or e.nom_dns or '' }}</td>
+      <td>{{ m.badge_type(e.type) }}</td>
+      <td class="mono">{{ e.mac or '' }}</td>
+      <td>{{ e.constructeur or '' }}</td>
+      <td class="mono">{{ (e.ports or '')|replace(',', ', ') }}</td>
+      <td>{{ 'oui' if e.snmp else '' }}</td>
+      <td class="date">{{ e.derniere_vue }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="9" class="vide">Inventaire vide.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Filtrage côté navigateur (pas de rechargement de page)
+  const recherche = document.getElementById("recherche");
+  const filtreType = document.getElementById("filtre-type");
+  const filtreEnLigne = document.getElementById("filtre-en-ligne");
+
+  function filtrer() {
+    const texte = recherche.value.toLowerCase();
+    for (const ligne of document.querySelectorAll("#tableau-inventaire tbody tr[data-type]")) {
+      const visible = ligne.textContent.toLowerCase().includes(texte)
+        && (!filtreType.value || ligne.dataset.type === filtreType.value)
+        && (!filtreEnLigne.checked || ligne.dataset.enLigne === "1");
+      ligne.hidden = !visible;
+    }
+  }
+  [recherche, filtreType, filtreEnLigne].forEach(el => el.addEventListener("input", filtrer));
+</script>
+{% endblock %}

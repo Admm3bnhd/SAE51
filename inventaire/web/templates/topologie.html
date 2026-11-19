@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titre %}Topologie{% endblock %}
+
+{% block contenu %}
+<div class="titre-ligne">
+  <h1>Topologie</h1>
+  <div class="exports">
+    <label><input id="masquer-hors-ligne" type="checkbox"> Masquer les équipements hors ligne</label>
+    <button id="recentrer" class="secondaire" type="button">Recentrer</button>
+  </div>
+</div>
+
+<div class="legende">
+  {% for type, couleur in couleurs.items() %}
+    <span><i style="background: {{ couleur }}"></i>{{ type }}</span>
+  {% endfor %}
+  <span><b class="trait plein"></b>lien LLDP (réel)</span>
+  <span><b class="trait pointille"></b>lien déduit (même sous-réseau)</span>
+</div>
+
+<div id="graphe" class="carte"></div>
+<p class="aide">Double-cliquez sur un équipement pour ouvrir sa fiche. Les équipements peuvent être déplacés à la souris.</p>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/vis-network.min.js') }}"></script>
+<script>
+  const COULEURS = {{ couleurs|tojson }};
+  const URL_API = "{{ url_for('api_topologie') }}";
+  const URL_FICHE = "{{ url_for('equipement', ip='IP') }}";
+</script>
+<script src="{{ url_for('static', filename='topologie.js') }}"></script>
+{% endblock %}
