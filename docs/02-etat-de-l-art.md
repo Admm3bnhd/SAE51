@@ -30,7 +30,7 @@ utilisés par ce projet :
 | `lldpLocPortDesc` | `1.0.8802.1.1.2.1.3.7.1.4` | Nom des ports locaux LLDP |
 | `lldpRemPortId` | `1.0.8802.1.1.2.1.4.1.1.7` | Port du voisin |
 | `lldpRemSysName` | `1.0.8802.1.1.2.1.4.1.1.9` | Nom du voisin |
-| `lldpRemManAddrIfSubtype` | `1.0.8802.1.1.2.1.4.2.1.4` | Adresse IP d'administration du voisin (encodée dans l'index) |
+| `lldpRemManAddrIfSubtype` | `1.0.8802.1.1.2.1.4.2.1.3` | Adresse IP d'administration du voisin (encodée dans l'index) |
 
 **`sysServices`** (RFC 1213) est un entier dont chaque bit indique une
 couche assurée par l'équipement : bit 0 → couche 1, bit 1 → couche 2
